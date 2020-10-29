@@ -279,6 +279,54 @@ class MergeSort(SortExample):
         return c
 
 
+def heap_sort(arr):
+    def shift_down(arr, e, begin, end):
+        i, j = begin, begin*2+1
+        
+        while j < end:
+            if j+1 < end and arr[j+1] > arr[j]:
+                j += 1
+            if e > arr[j]:
+                break
+            else:
+                arr[i] = arr[j]
+                i, j = j, j*2+1
+        arr[i] = e
+    
+    end = len(arr)
+    for i in range(end//2-1, -1, -1):
+        shift_down(arr, arr[i], i, len(arr))
+        
+    for i in range(end-1, -1, -1):
+        ei = arr[i]
+        arr[i] = arr[0]
+        shift_down(arr, ei, 0, i)
+            
+
+def heap_sort2(arr):
+    def heapify(arr, i, n):
+        largest = i
+        l = largest*2+1
+        r = l + 1
+        if l < n and arr[largest] < arr[l]:
+            largest = l
+        if r < n and arr[largest] < arr[r]:
+            largest = r
+
+        if i != largest:
+            arr[i], arr[largest] = arr[largest], arr[i]
+            heapify(arr, largest, n)
+        
+    
+    n = len(arr)
+    for i in range(n//2, -1, -1):
+        heapify(arr, i, n)
+    
+    for i in range(n-1, -1, -1):
+        arr[0], arr[i] = arr[i], arr[0]
+        heapify(arr, 0, i)
+
+
 def CountingSort(a, b, k):
     #c=[0]*(k+1) #let c[0...k] be an all 0 array
     #c=[0 for i in range(0,k+1)]
@@ -287,28 +335,87 @@ def CountingSort(a, b, k):
         c.append(0)
     for j in range(len(a)):
         c[a[j]] = c[a[j]] + 1
-    print(c)
     for i in range(1, k+1):
         c[i] = c[i] + c[i-1]
-    print(c)
     for j in range(len(a)-1, -1, -1):
         b[c[a[j]]-1] = a[j]#!!!!!减一是关键
         c[a[j]] = c[a[j]] - 1
-    print(b)
     
 a=[2, 5, 3, 0, 2, 3, 0, 3]
 
 b=[None for i in range(len(a))]
 CountingSort(a, b, max(a))
 
+def counting_sort(arr):
+    mx = max(arr)
+    mn = min(arr)
+    count = [0] * (mx-mn+1)
+    result = [None] * len(arr)
+    
+    for i in arr:
+        count[i-mn] += 1
+    print(count)
+    
+    for i in range(1, len(count)):
+        count[i] = count[i] + count[i-1]
+    print(count)
+    
+    for i in range(len(arr)-1, -1, -1):
+        result[count[arr[i]-mn]-1] = arr[i]
+        count[arr[i]-mn] -= 1
+    
+    return result
+    
+     
+    
+    
 
-
+# 基数排序
+def radix_sort(arr):
+    max_num = max(arr)
+    
+    i = 1
+    while max_num // i > 0:
+        bucket_list = [[] for _ in range(10)]
+        for x in arr:
+            bucket_list[(x//i%10)].append(x)
+        
+        arr.clear()
+        for items in bucket_list:
+            for x in items:
+                arr.append(x)
+        i *= 10
+        
+def radix_sort2(arr):
+    n = len(str(max(arr)))
+    i = 0
+    while i < n:
+        bucket_list = [[] for _ in range(10)]
+        for x in arr:
+            bucket_list[(x//10**i%10)].append(x)
+        print(bucket_list)
+        
+        arr = [j for i in bucket_list for j in i]                
+        i += 1
+    return arr
+        
+        
 arr = [5,4,3,5,2,8,1,6,7]
 
 if __name__ == "__main__":
     import timeit
     import sys
     # arr = [5,4,3,5,2,8,1,6,7,10]
+    arr = [95,94,91,98,99,90,99,93,91,92]
+    counting_sort(arr)
+    
+    
+    
+    # a = radix_sort2(arr)
+    # print(a)
+    
+    # heap_sort2(arr)
+    # print(arr)
     
     # print(timeit.timeit("merge_sort2(arr, 0, len(arr))", "from __main__ import arr, merge_sort2, merge2", number=100000))
     # print(timeit.timeit("merge_sort(arr)", "from __main__ import arr, merge_sort, merge", number=100000))

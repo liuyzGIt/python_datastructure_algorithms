@@ -84,49 +84,6 @@ class GraphAL:
             print(x)
     
 
-Unconn = 0
-Vertexs = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-
-G7 = [
-    [0, 0, 6, 3, 0, 0, 0],
-    [11, 0, 4, 0, 0, 7, 0],
-    [0, 3, 0, 0, 5, 0, 0],
-    [0, 0, 0, 0, 5, 0, 0],
-    [0, 0, 0, 0, 0, 0, 9],
-    [0, 0, 0, 0, 0, 0, 10],
-    [0, 0, 0, 0, 0, 0, 0],
-]
-
-G8 = [
-    [0, 7, 7, 9, 0, 0, 0],
-    [7, 0, 0, 3, 6, 0, 5],
-    [7, 0, 0, 14, 0, 11, 0],
-    [9, 3, 14, 0, 0, 0, 20],
-    [0, 6, 0, 0, 0, 0, 8],
-    [0, 0, 11, 0, 0, 0, 6],
-    [0, 5, 0, 20, 8, 6, 0],
-]
-
-G9 = [
-    [0, 5, 11, 5, 0, 0, 0],
-    [5, 0, 0, 3, 9, 0, 7],
-    [11, 0, 0, 7, 0, 6, 0],
-    [5, 3, 7, 0, 0, 0, 20],
-    [0, 9, 0, 0, 0, 0, 8],
-    [0, 0, 6, 0, 0, 0, 8],
-    [0, 7, 0, 20, 8, 8, 0],
-]
-
-# G9 = [
-    # [0, 5, 11, 5, 0, 0, 0],
-    # [5, 0, 0, 3, 9, 0, 7],
-    # [11, 0, 0, 7, 0, 0, 0],
-    # [5, 3, 7, 0, 0, 0, 20],
-    # [0, 9, 0, 0, 0, 0, 8],
-    # [0, 0, 0, 0, 0, 0, 0],
-    # [0, 7, 0, 20, 8, 0, 0],
-# ]
-
 # DFS递归遍历
 def DFS_recursion(graph, v, visited):
     visited[v] = 1
@@ -190,7 +147,7 @@ def DFS_span_forest(graph):
     return span_forest
             
     
-
+# 克鲁斯卡尔算法
 def Kruskal(graph):
     vnum = graph.vertex_num()   
     reps = [i for i in range(vnum)]         # 初始每个顶点的代表元是自己的下标
@@ -216,6 +173,8 @@ def Kruskal(graph):
 
     return mst
         
+
+# 普利姆算法
 from queue_prio_list import PrioQueue
 def Prim(graph):
     vnum = graph.vertex_num()
@@ -234,6 +193,109 @@ def Prim(graph):
             if not mst[vi]:
                 cands.enqueue((w, v, vi))
     return mst
+
+
+# 迪杰斯特拉算法
+def Dijkstra_shortest_paths(graph, v0):
+    vnum = graph.vertex_num()
+    assert 0 <= v0 < vnum 
+    paths = [None] * vnum
+    count = 0
+    conds = PrioQueue([(0, 0, 0)])
+    
+    while count < vnum and not conds.is_empty():
+        plen, u, vmin = conds.dequeue()
+        if paths[vmin]:
+            continue
+        paths[vmin] = (u, plen)
+        for v, w in graph.out_edges(vmin):
+            if not paths[v]:
+                conds.enqueue((plen+w, vmin, v))
+        count += 1
+    return paths
+
+
+# 最短路径的Floyd算法
+def all_shortest_paths(graph):
+    vnum = graph.vertex_num()
+    a = [[graph.get_edge(i, j) for j in range(vnum)]
+            for i in range(vnum)]
+            
+    for i in a:
+        print(i)
+    nvertex = [[-1 if a[i][j] == inf else j for j in range(vnum)] for i in range(vnum)]
+    # nvertex = [[-1 for j in range(vnum)] for i in range(vnum)]
+    print('*'*100)
+    for i in nvertex:
+        print(i)
+    for k in range(vnum):
+        for i in range(vnum):
+            for j in range(vnum):
+                if i !=j and k !=i and k != j:
+                    if a[i][j] > a[i][k] + a[k][j]:
+                        a[i][j] = a[i][k] + a[k][j]
+                        nvertex[i][j] = nvertex[i][k]
+                        # nvertex[i][j] = k
+    return (a, nvertex)
+    
+def print_shortest_path(path, i, j):
+    # if path[i][j] == -1:
+    if path[i][j] == j:
+        print(i, j)
+    else:
+        mid = path[i][j]
+        print_shortest_path(path, i, mid)
+        print_shortest_path(path, mid, j)
+        
+    
+    
+    
+
+
+Unconn = 0
+Vertexs = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+
+G7 = [
+    [0, 0, 6, 3, 0, 0, 0],
+    [11, 0, 4, 0, 0, 7, 0],
+    [0, 3, 0, 0, 5, 0, 0],
+    [0, 0, 0, 0, 5, 0, 0],
+    [0, 0, 0, 0, 0, 0, 9],
+    [0, 0, 0, 0, 0, 0, 10],
+    [0, 0, 0, 0, 0, 0, 0]
+]
+
+G8 = [
+    [0, 7, 7, 9, 0, 0, 0],
+    [7, 0, 0, 3, 6, 0, 5],
+    [7, 0, 0, 14, 0, 11, 0],
+    [9, 3, 14, 0, 0, 0, 20],
+    [0, 6, 0, 0, 0, 0, 8],
+    [0, 0, 11, 0, 0, 0, 6],
+    [0, 5, 0, 20, 8, 6, 0]
+]
+
+G9 = [
+    [0, 5, 11, 5, 0, 0, 0],
+    [5, 0, 0, 3, 9, 0, 7],
+    [11, 0, 0, 7, 0, 6, 0],
+    [5, 3, 7, 0, 0, 0, 20],
+    [0, 9, 0, 0, 0, 0, 8],
+    [0, 0, 6, 0, 0, 0, 8],
+    [0, 7, 0, 20, 8, 8, 0]
+]
+
+inf=float('inf')
+Unconn = inf
+G9 = [
+    [0,   5,   11,  5,   inf, inf, inf],
+    [5,   0,   inf, 3,   9,   inf, 7  ],
+    [11,  inf, 0,   7,   inf, 6,   inf],
+    [5,   3,   7,   0,   inf, inf, 20 ],
+    [inf, 9,   inf, inf, 0,   inf, 8  ],
+    [inf, inf, 6,   inf, inf, 0,   8  ],
+    [inf, 7,   inf, 20,  8,   8,   0  ]
+]
 
 
 if __name__ == "__main__":
@@ -259,4 +321,17 @@ if __name__ == "__main__":
     
     
     # print(Kruskal(g9))
-    print(Prim(g9))
+    # print(Prim(g9))
+    # print(Dijkstra_shortest_paths(g7, 0))
+    # print(Dijkstra_shortest_paths(g8, 0))
+    # print(Dijkstra_shortest_paths(g9, 0))
+    
+    a, p = all_shortest_paths(g9)
+    print('*'*100)
+    for i in a:
+        print(i)
+    print('*'*100)
+    for i in p:
+        print(i)
+    
+    print_shortest_path(p, 0, 5)

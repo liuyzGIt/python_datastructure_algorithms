@@ -248,8 +248,142 @@ def print_shortest_path(path, i, j):
         print_shortest_path(path, mid, j)
         
     
+def topo_sort(graph):
+    vnum = graph.vertex_num()
+    indegree, toposeq = [0] * vnum, []
+    zerov = -1
+    
+    for i in range(vnum):
+        for v, w in graph.out_edges(i):
+            indegree[v] +=1
+            
+    for v in range(vnum):
+        if indegree[v] == 0:            
+            indegree[v] = zerov
+            zerov = v
+    print(indegree)
+    for n in range(vnum):
+        if zerov == -1:
+            return False
+        print(zerov, indegree)
+        vi = zerov
+        zerov = indegree[vi]
+        toposeq.append(vi)
+        for v, w in graph.out_edges(vi):
+            indegree[v] -= 1
+            if indegree[v] == 0:
+                indegree[v] = zerov
+                zerov = v
+    return toposeq
+            
+
+# * 从有向图中选择一个出度为0的顶点输出。
+# * 删除选出的顶点，并删除指向该顶点的全部边。
+# * 重复上述两步，直到剩余图中不存在出度为0的边为止。
+
+def reverse_topo_sort(graph):
+    vnum = graph.vertex_num()
+    zerov = -1
+    outdegrees, reverse_sort = [0] * vnum, []
+    inedges = [[] for i in range(vnum)]
     
     
+    for vi in range(vnum):
+        edges = graph.out_edges(vi)
+        outdegrees[vi] = len(edges)
+        for v, w in edges:
+            inedges[v].append(vi)
+    
+    for vi in range(vnum):
+        if outdegrees[vi] == 0:
+            outdegrees[vi] = zerov
+            zerov = vi
+            
+    for i in range(vnum):
+        if zerov == -1:
+            return False
+        reverse_sort.append(zerov)
+        
+        vi = zerov
+        zerov = outdegrees[zerov]
+                
+        for v in inedges[vi]:
+            outdegrees[v] -= 1
+            if outdegrees[v] == 0:
+                outdegrees[v] = zerov
+                zerov = v
+    
+    return reverse_sort
+        
+            
+def critical_paths(graph):   
+    
+    def topo_sort(g, vnum):
+        indegree, toposeq = [0]*vnum, []        
+        zerov = -1
+        
+        for vi in range(vnum):            
+            for vj, w in g.out_edges(vi):               
+                indegree[vj] +=1
+        
+        for i in range(vnum):
+            if indegree[i] == 0:
+                indegree[i] = zerov
+                zerov = i
+                
+        for i in range(vnum):
+            if zerov == -1:
+                return False
+            
+            toposeq.append(zerov)            
+            vi = zerov
+            zerov = indegree[vi]            
+            
+            for vj, w in g.out_edges(vi):
+                indegree[vj] -= 1
+                if indegree[vj] == 0:
+                    indegree[vj] = zerov
+                    zerov = vj
+        return toposeq
+        
+        
+    def event_earliest_time(g, vnum, toposeq):
+        ee = [0] * vnum
+        for i in toposeq:           
+            for j, w in g.out_edges(i):
+                if ee[i] + w > ee[j]:
+                    ee[j] = ee[i] + w
+        return ee
+        
+    def event_latest_time(g, vnum, toposeq, eelast):        
+        le = [eelast] * vnum
+        for k in range(vnum-2, -1, -1):        
+            i = toposeq[k]            
+            for j, w in g.out_edges(i):
+                if le[j] - w < le[i]:
+                    le[i] = le[j] - w 
+        return le
+    
+    def crt_path(vnum, g, ee, le):
+        crt_actions = []
+        
+        for i in range(vnum):
+            for j, w in g.out_edges(i):
+                if ee[i] == le[j]-w: # 关键活动
+                    crt_actions.append((i, j, ee[i]))
+        return crt_actions
+        
+        
+        
+    vnum = graph.vertex_num()
+    toposeq = topo_sort(graph, vnum)
+    if not toposeq:  # 不存在拓扑序列
+        return False  
+    
+    ee = event_earliest_time(graph, vnum, toposeq)
+    le = event_latest_time(graph, vnum, toposeq,ee[-1])
+    
+    return crt_path(vnum, graph, ee, le)
 
 
 Unconn = 0
@@ -285,17 +419,42 @@ G9 = [
     [0, 7, 0, 20, 8, 8, 0]
 ]
 
-inf=float('inf')
-Unconn = inf
-G9 = [
-    [0,   5,   11,  5,   inf, inf, inf],
-    [5,   0,   inf, 3,   9,   inf, 7  ],
-    [11,  inf, 0,   7,   inf, 6,   inf],
-    [5,   3,   7,   0,   inf, inf, 20 ],
-    [inf, 9,   inf, inf, 0,   inf, 8  ],
-    [inf, inf, 6,   inf, inf, 0,   8  ],
-    [inf, 7,   inf, 20,  8,   8,   0  ]
+G12 = [
+    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 1, 1, 8, 0, 1],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
+
+G14 = [
+    [0, 7, 13, 8, 0, 0,  0, 0,  0],
+    [0, 0, 4,  0, 0, 14, 0, 0,  0],
+    [0, 0, 0,  0, 5, 0,  8, 12, 0],
+    [0, 0, 0,  0, 13,0,  0, 10, 0],
+    [0, 0, 0,  0, 0, 7,  3, 0,  0],
+    [0, 0, 0,  0, 0, 0,  0, 0,  6],
+    [0, 0, 0,  0, 0, 0,  0, 0,  7],
+    [0, 0, 0,  0, 0, 0,  0, 0,  8],
+    [0, 0, 0,  0, 0, 0,  0, 0,  0],
+]
+
+# inf=float('inf')
+# Unconn = inf
+# G9 = [
+    # [0,   5,   11,  5,   inf, inf, inf],
+    # [5,   0,   inf, 3,   9,   inf, 7  ],
+    # [11,  inf, 0,   7,   inf, 6,   inf],
+    # [5,   3,   7,   0,   inf, inf, 20 ],
+    # [inf, 9,   inf, inf, 0,   inf, 8  ],
+    # [inf, inf, 6,   inf, inf, 0,   8  ],
+    # [inf, 7,   inf, 20,  8,   8,   0  ]
+# ]
 
 
 if __name__ == "__main__":
@@ -326,12 +485,14 @@ if __name__ == "__main__":
     # print(Dijkstra_shortest_paths(g8, 0))
     # print(Dijkstra_shortest_paths(g9, 0))
     
-    a, p = all_shortest_paths(g9)
-    print('*'*100)
-    for i in a:
-        print(i)
-    print('*'*100)
-    for i in p:
-        print(i)
+    # a, p = all_shortest_paths(g9)   
+    # print_shortest_path(p, 0, 5)
+    vertexs = ['c1', 'c2', 'c3', 'c4', 'c5','c6','c7','c8','c9','c10',]
+    g12  = GraphAL(vertexs, G12, Unconn)
     
-    print_shortest_path(p, 0, 5)
+    # print(topo_sort(g12))
+    # print(reverse_topo_sort(g12))
+    
+    vertexs = ['v0', 'v1', 'v2', 'v3', 'v4', 'v5','v6','v7','v8']
+    g14  = GraphAL(vertexs, G14, Unconn)
+    print(critical_paths(g14))
